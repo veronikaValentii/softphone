@@ -15,9 +15,14 @@ class UserConfirmationController extends Controller
         $this->userConfirmation = $userConfirmation;
     }
 
+    /**
+     * resend code
+     * @param SendConfirmationRequest $request
+     * @return JsonResponse
+     */
     public function resend(SendConfirmationRequest $request): JsonResponse
     {
-        $result = $this->userConfirmation->send($request->all());
+        $result = $this->userConfirmation->send($request->only(['email','phone']));
         return response()->json(['result' => $result]);
     }
 }

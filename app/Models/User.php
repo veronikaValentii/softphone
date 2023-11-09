@@ -4,9 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable  implements JWTSubject
 {
     const STATUS_INACTIVE = 'inactive';
     const STATUS_ACTIVE = 'active';
@@ -32,12 +33,17 @@ class User extends Authenticatable
         'password',
     ];
 
+    /**
+     * create user
+     * @param array $attributes
+     * @return Model
+     */
     public function store(array $attributes): Model
     {
         $user = User::query()->create([
             'name' => $attributes['name'],
             'email' => $attributes['email'],
-            'password' => Crypt::encrypt($attributes['password']),
+            'password' => Hash::make($attributes['password']),
             'status' => self::STATUS_INACTIVE
         ]);
         //send activation account code
@@ -46,6 +52,11 @@ class User extends Authenticatable
         return $user;
     }
 
+    /**
+     * activate user
+     * @param array $attributes
+     * @return Model
+     */
     public function activate(array $attributes): Model
     {
         //disable old activation codes
@@ -62,4 +73,13 @@ class User extends Authenticatable
         ]);
     }
 
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }

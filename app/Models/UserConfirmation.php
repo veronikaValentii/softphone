@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Services\UserNotificationService;
 use App\Mail\ActivationAccountMail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,11 @@ class UserConfirmation extends Model
         'context',
     ];
 
+    /**
+     * send code via sms or email
+     * @param array $params
+     * @return bool
+     */
     public function send(array $params): bool
     {
         try {
@@ -55,14 +61,13 @@ class UserConfirmation extends Model
                 'context' => $params['email']
             ]);
 
-            Mail::to($params['email'])->send(new ActivationAccountMail($confirmation));
+            UserNotificationService::sendEmail($params['email'], $confirmation);
         }
     }
 
     public function sendSms(array $params): void
     {
         if (isset($params['phone'])) {
-
             //disable old codes
             UserConfirmation::query()
                 ->where('type',self::TYPE_SMS)
